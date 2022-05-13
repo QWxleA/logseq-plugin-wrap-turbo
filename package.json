@@ -1,9 +1,13 @@
 {
-  "name": "logseq-plugin-wrap",
-  "version": "0.3.8",
+  "name": "logseq-plugin-wrap-turbo",
+  "description": "Simple fork for highlighting texts",
+  "version": "0.3.9turbo",
   "main": "dist/index.html",
+  "keywords": ["text highlighting", "logseq"],
+  "author": "Alex Qwxlea (Seth Yuan the real part)",
+  "license": "MIT",
   "logseq": {
-    "id": "_sethyuan-logseq-wrap",
+    "id": "_sethyuan-logseq-wrap-turbo",
     "icon": "./icon.png"
   },
   "scripts": {

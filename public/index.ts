@@ -1,4 +1,6 @@
 import "@logseq/libs"
+import { SettingSchemaDesc } from '@logseq/libs/dist/LSPlugin';
+
 import { render } from "preact"
 import { debounce, throttle } from "rambdax"
 import Toolbar from "./Toolbar.jsx"
@@ -7,13 +9,104 @@ const TOOLBAR_ID = "kef-wrap-toolbar"
 let toolbar
 let textarea
 
+const pluginName = ["wrap-turbo", "Wrap Turbo"]
+export const settingsTemplate: SettingSchemaDesc[] = [{
+  key: "toolbar",
+  type: 'boolean',
+  default: true,
+  title: "Show toolbar",
+  description: "Show toolbar when highlighting text",
+},
+{
+  key: "yellow",
+  type: 'string',
+  inputAs: 'color',
+  default: "#FFD800",
+  title: "Important Point By Author",
+  description: "Set to your preferred color",
+},
+{
+  key: "yellowTxt",
+  type: 'string',
+  default: "Important Point By Author",
+  title: "Important Point By Author",
+  description: "Set description",
+},
+{
+  key: "blue",
+  type: 'string',
+  inputAs: 'color',
+  default: "#ABDFFF",
+  title: "Quote / quotable",
+  description: "Set to your preferred color",
+},
+{
+  key: "blueTxt",
+  type: 'string',
+  default: "Quote / quotable",
+  title: "Quote / quotable",
+  description: "Set description",
+},
+{
+  key: "green",
+  type: 'string',
+  inputAs: 'color',
+  default: "#CCFFC1",
+  title: "Quote / quotable",
+  description: "Set to your preferred color",
+},
+{
+  key: "greenTxt",
+  type: 'string',
+  default: "Important To Me",
+  title: "Important To Me",
+  description: "Set description",
+},
+{
+  key: "red",
+  type: 'string',
+  inputAs: 'color',
+  default: "#FFC7C7",
+  title: "Disagree With Author",
+  description: "Set to your preferred color",
+},
+{
+  key: "redTxt",
+  type: 'string',
+  default: "Disagree With Author",
+  title: "Disagree With Author",
+  description: "Set description",
+},
+{
+  key: "purple",
+  type: 'string',
+  inputAs: 'color',
+  default: "#CA1CFF",
+  title: "Interesting side-point",
+  description: "Set to your preferred color",
+},
+{
+  key: "purpleTxt",
+  type: 'string',
+  default: "Interesting side-point",
+  title: "Interesting side-point",
+  description: "Set description",
+}
+]
+logseq.useSettingsSchema(settingsTemplate);
+
+function colIcon(color) {
+  return `<svg t="1643262039637" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6950" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M114.727313 1024l0.305421-0.427589h-0.977347l0.671926 0.427589zM632.721199 809.365446c-156.680934 0-272.466006 41.644143-341.659116 75.927642L290.878831 972.108985C340.402833 942.605324 458.249497 885.720677 632.73647 885.720677H962.804862v-76.355231H632.73647z m-109.432317-72.018253l252.048617-528.378197a38.177615 38.177615 0 0 0-13.621773-48.790993L551.295981 24.464216a38.192886 38.192886 0 0 0-50.089031 7.696607L130.349594 483.908911a38.208157 38.208157 0 0 0-7.024682 35.886958c31.763776 100.315502 36.436716 182.626441 34.695817 234.777064L94.477906 870.449631h132.094549l32.221908-42.606219c49.78361-25.624815 134.15614-60.931474 233.326314-69.177839a38.147073 38.147073 0 0 0 31.152934-21.31838z m-59.343285-52.54767c-71.66702 8.505973-134.950235 28.572127-184.489509 49.157497l-45.339736-29.244053c-2.290657-50.883126-10.613377-114.716099-31.901215-187.849139l336.161539-409.874879 153.474014 98.986922-193.728492 408.653195-176.838714-112.746134-47.935814 60.015211 191.117142 121.847678-0.519215 1.053702z" p-id="6951" fill="${color}"></path></svg>`;
+
+}
+
 async function main() {
   // Reset values.
   toolbar = null
   textarea = null
 
   const definitions = await getDefinitions()
-
+  
   logseq.provideStyle(`
     #kef-wrap-toolbar {
       position: absolute;
@@ -49,6 +142,8 @@ async function main() {
       height: 20px;
     }
 
+    span[data-ref="#yellow"],
+    span[data-ref="#purple"],
     span[data-ref="#red"],
     span[data-ref="#green"],
     span[data-ref="#blue"],
@@ -58,28 +153,46 @@ async function main() {
       display: none;
     }
     span[data-ref="#red"] + mark {
-      background: #ffc7c7;
+      background: ${logseq.settings.red};
     }
     span[data-ref="#green"] + mark {
-      background: #ccffc1;
+      background: ${logseq.settings.green};
     }
     span[data-ref="#blue"] + mark {
-      background: #abdfff;
+      background: ${logseq.settings.blue};
+    }
+    span[data-ref="#yellow"] + mark {
+      background: ${logseq.settings.yellow};
+    }
+    span[data-ref="#purple"] + mark {
+      background: ${logseq.settings.purple};
     }
     span[data-ref="$red"] + mark {
-      color: #f00;
+      color: ${logseq.settings.red};
       background: unset;
       padding: 0;
       border-radius: 0;
     }
     span[data-ref="$green"] + mark {
-      color: #0f0;
+      color: ${logseq.settings.green};
       background: unset;
       padding: 0;
       border-radius: 0;
     }
     span[data-ref="$blue"] + mark {
-      color: #00f;
+      color: ${logseq.settings.blue}f;
+      background: unset;
+      padding: 0;
+      border-radius: 0;
+    }
+    span[data-ref="$purple"] + mark {
+      color: ${logseq.settings.purple};
+      background: unset;
+      padding: 0;
+      border-radius: 0;
+    }
+    span[data-ref="$yellow"] + mark {
+      color: ${logseq.settings.yellow};
       background: unset;
       padding: 0;
       border-radius: 0;
@@ -132,6 +245,8 @@ async function main() {
     parent.document.removeEventListener("selectionchange", onSelectionChange)
   })
 
+  //loop through definitions
+  // FIXME unregister keys first
   for (const { key, label, binding } of definitions) {
     if (binding) {
       logseq.App.registerCommandPalette(
@@ -143,7 +258,7 @@ async function main() {
     }
   }
 
-  console.log("#wrap loaded")
+  console.log(`Plugin ${pluginName[0]} loaded`)
 }
 
 async function getDefinitions() {
@@ -167,50 +282,41 @@ async function getDefinitions() {
       icon: `<svg t="1643261888324" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="5478" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M341.333333 396.8V320H170.666667v384h170.666666v-76.8H256V396.8zM682.666667 396.8V320h170.666666v384h-170.666666v-76.8h85.333333V396.8zM535.04 533.333333h40.96v-42.666666h-40.96V203.093333l92.16-24.746666-11.093333-40.96-102.4 27.306666-102.4-27.306666-11.093334 40.96 92.16 24.746666v287.573334H448v42.666666h44.373333v287.573334l-92.16 24.746666 11.093334 40.96 102.4-27.306666 102.4 27.306666 11.093333-40.96-92.16-24.746666z" p-id="5479" fill="#eeeeee"></path></svg>`,
     },
     {
-      key: "wrap-red-hl",
-      label: lang === "zh-CN" ? "包围成红色高亮" : "Wrap with red highlight",
+      key: "wrap-yellow-hl",
+      label: lang === "zh-CN" ? "包围成红色高亮" : logseq.settings.yellowTxt,
       binding: "",
-      template: preferredFormat === "org" ? "[[#red]]^^$^^^" : "[[#red]]==$^==",
-      icon: `<svg t="1643262039637" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6950" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M114.727313 1024l0.305421-0.427589h-0.977347l0.671926 0.427589zM632.721199 809.365446c-156.680934 0-272.466006 41.644143-341.659116 75.927642L290.878831 972.108985C340.402833 942.605324 458.249497 885.720677 632.73647 885.720677H962.804862v-76.355231H632.73647z m-109.432317-72.018253l252.048617-528.378197a38.177615 38.177615 0 0 0-13.621773-48.790993L551.295981 24.464216a38.192886 38.192886 0 0 0-50.089031 7.696607L130.349594 483.908911a38.208157 38.208157 0 0 0-7.024682 35.886958c31.763776 100.315502 36.436716 182.626441 34.695817 234.777064L94.477906 870.449631h132.094549l32.221908-42.606219c49.78361-25.624815 134.15614-60.931474 233.326314-69.177839a38.147073 38.147073 0 0 0 31.152934-21.31838z m-59.343285-52.54767c-71.66702 8.505973-134.950235 28.572127-184.489509 49.157497l-45.339736-29.244053c-2.290657-50.883126-10.613377-114.716099-31.901215-187.849139l336.161539-409.874879 153.474014 98.986922-193.728492 408.653195-176.838714-112.746134-47.935814 60.015211 191.117142 121.847678-0.519215 1.053702z" p-id="6951" fill="#ffc7c7"></path></svg>`,
-    },
-    {
-      key: "wrap-green-hl",
-      label: lang === "zh-CN" ? "包围成绿色高亮" : "Wrap with green highlight",
-      binding: "",
-      template:
-        preferredFormat === "org" ? "[[#green]]^^$^^^" : "[[#green]]==$^==",
-      icon: `<svg t="1643262039637" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6950" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M114.727313 1024l0.305421-0.427589h-0.977347l0.671926 0.427589zM632.721199 809.365446c-156.680934 0-272.466006 41.644143-341.659116 75.927642L290.878831 972.108985C340.402833 942.605324 458.249497 885.720677 632.73647 885.720677H962.804862v-76.355231H632.73647z m-109.432317-72.018253l252.048617-528.378197a38.177615 38.177615 0 0 0-13.621773-48.790993L551.295981 24.464216a38.192886 38.192886 0 0 0-50.089031 7.696607L130.349594 483.908911a38.208157 38.208157 0 0 0-7.024682 35.886958c31.763776 100.315502 36.436716 182.626441 34.695817 234.777064L94.477906 870.449631h132.094549l32.221908-42.606219c49.78361-25.624815 134.15614-60.931474 233.326314-69.177839a38.147073 38.147073 0 0 0 31.152934-21.31838z m-59.343285-52.54767c-71.66702 8.505973-134.950235 28.572127-184.489509 49.157497l-45.339736-29.244053c-2.290657-50.883126-10.613377-114.716099-31.901215-187.849139l336.161539-409.874879 153.474014 98.986922-193.728492 408.653195-176.838714-112.746134-47.935814 60.015211 191.117142 121.847678-0.519215 1.053702z" p-id="6951" fill="#ccffc1"></path></svg>`,
+      template: preferredFormat === "org" ? "[[#yellow]]^^$^^^" : "[[#yellow]]==$^==",
+      icon: colIcon(logseq.settings.yellow),
     },
     {
       key: "wrap-blue-hl",
-      label: lang === "zh-CN" ? "包围成蓝色高亮" : "Wrap with blue highlight",
+      label: lang === "zh-CN" ? "包围成蓝色高亮" : logseq.settings.blueTxt,
       binding: "",
       template:
         preferredFormat === "org" ? "[[#blue]]^^$^^^" : "[[#blue]]==$^==",
-      icon: `<svg t="1643262039637" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="6950" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200"><defs><style type="text/css"></style></defs><path d="M114.727313 1024l0.305421-0.427589h-0.977347l0.671926 0.427589zM632.721199 809.365446c-156.680934 0-272.466006 41.644143-341.659116 75.927642L290.878831 972.108985C340.402833 942.605324 458.249497 885.720677 632.73647 885.720677H962.804862v-76.355231H632.73647z m-109.432317-72.018253l252.048617-528.378197a38.177615 38.177615 0 0 0-13.621773-48.790993L551.295981 24.464216a38.192886 38.192886 0 0 0-50.089031 7.696607L130.349594 483.908911a38.208157 38.208157 0 0 0-7.024682 35.886958c31.763776 100.315502 36.436716 182.626441 34.695817 234.777064L94.477906 870.449631h132.094549l32.221908-42.606219c49.78361-25.624815 134.15614-60.931474 233.326314-69.177839a38.147073 38.147073 0 0 0 31.152934-21.31838z m-59.343285-52.54767c-71.66702 8.505973-134.950235 28.572127-184.489509 49.157497l-45.339736-29.244053c-2.290657-50.883126-10.613377-114.716099-31.901215-187.849139l336.161539-409.874879 153.474014 98.986922-193.728492 408.653195-176.838714-112.746134-47.935814 60.015211 191.117142 121.847678-0.519215 1.053702z" p-id="6951" fill="#abdfff"></path></svg>`,
+      icon: colIcon(logseq.settings.blue),
     },
     {
-      key: "wrap-red-text",
-      label: lang === "zh-CN" ? "包围成红色文字" : "Wrap with red text",
-      binding: "",
-      template: preferredFormat === "org" ? "[[$red]]^^$^^^" : "[[$red]]==$^==",
-      icon: `<svg t="1643270432116" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12761" width="200" height="200"><path d="M256 768h512a85.333333 85.333333 0 0 1 85.333333 85.333333v42.666667a85.333333 85.333333 0 0 1-85.333333 85.333333H256a85.333333 85.333333 0 0 1-85.333333-85.333333v-42.666667a85.333333 85.333333 0 0 1 85.333333-85.333333z m0 85.333333v42.666667h512v-42.666667H256z m401.578667-341.333333H366.421333L298.666667 682.666667H213.333333l256.128-640H554.666667l256 640h-85.333334l-67.754666-170.666667z m-33.877334-85.333333L512 145.365333 400.298667 426.666667h223.402666z" p-id="12762" fill="#f00"></path></svg>`,
-    },
-    {
-      key: "wrap-green-text",
-      label: lang === "zh-CN" ? "包围成绿色文字" : "Wrap with green text",
+      key: "wrap-green-hl",
+      label: lang === "zh-CN" ? "包围成绿色高亮" : logseq.settings.greenTxt,
       binding: "",
       template:
-        preferredFormat === "org" ? "[[$green]]^^$^^^" : "[[$green]]==$^==",
-      icon: `<svg t="1643270432116" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12761" width="200" height="200"><path d="M256 768h512a85.333333 85.333333 0 0 1 85.333333 85.333333v42.666667a85.333333 85.333333 0 0 1-85.333333 85.333333H256a85.333333 85.333333 0 0 1-85.333333-85.333333v-42.666667a85.333333 85.333333 0 0 1 85.333333-85.333333z m0 85.333333v42.666667h512v-42.666667H256z m401.578667-341.333333H366.421333L298.666667 682.666667H213.333333l256.128-640H554.666667l256 640h-85.333334l-67.754666-170.666667z m-33.877334-85.333333L512 145.365333 400.298667 426.666667h223.402666z" p-id="12762" fill="#0f0"></path></svg>`,
+        preferredFormat === "org" ? "[[#green]]^^$^^^" : "[[#green]]==$^==",
+      icon: colIcon(logseq.settings.green),
     },
     {
-      key: "wrap-blue-text",
-      label: lang === "zh-CN" ? "包围成蓝色文字" : "Wrap with blue text",
+      key: "wrap-red-hl",
+      label: lang === "zh-CN" ? "包围成红色高亮" : logseq.settings.redTxt,
       binding: "",
-      template:
-        preferredFormat === "org" ? "[[$blue]]^^$^^^" : "[[$blue]]==$^==",
-      icon: `<svg t="1643270432116" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="12761" width="200" height="200"><path d="M256 768h512a85.333333 85.333333 0 0 1 85.333333 85.333333v42.666667a85.333333 85.333333 0 0 1-85.333333 85.333333H256a85.333333 85.333333 0 0 1-85.333333-85.333333v-42.666667a85.333333 85.333333 0 0 1 85.333333-85.333333z m0 85.333333v42.666667h512v-42.666667H256z m401.578667-341.333333H366.421333L298.666667 682.666667H213.333333l256.128-640H554.666667l256 640h-85.333334l-67.754666-170.666667z m-33.877334-85.333333L512 145.365333 400.298667 426.666667h223.402666z" p-id="12762" fill="#00beff"></path></svg>`,
+      template: preferredFormat === "org" ? "[[#red]]^^$^^^" : "[[#red]]==$^==",
+      icon: colIcon(logseq.settings.red),
+    },
+    {
+      key: "wrap-purple-hl",
+      label: lang === "zh-CN" ? "包围成红色高亮" : logseq.settings.purpleTxt,
+      binding: "",
+      template: preferredFormat === "org" ? "[[#purple]]^^$^^^" : "[[#purple]]==$^==",
+      icon: colIcon(logseq.settings.purple),
     },
     {
       key: "repl-clear",
